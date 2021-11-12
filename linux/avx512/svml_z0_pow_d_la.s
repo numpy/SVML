@@ -3523,3 +3523,5 @@ __dpow_la_CoutTab:
 	.long	862978048
 	.type	__dpow_la_CoutTab,@object
 	.size	__dpow_la_CoutTab,6880
+
+      .section        .note.GNU-stack,"",@progbits

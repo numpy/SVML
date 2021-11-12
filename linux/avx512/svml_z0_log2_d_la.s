@@ -1712,3 +1712,5 @@ __dlog2_la__P:
 	.long	1073157447
 	.type	__dlog2_la__P,@object
 	.size	__dlog2_la__P,56
+
+      .section        .note.GNU-stack,"",@progbits

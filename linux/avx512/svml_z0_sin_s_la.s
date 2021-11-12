@@ -2749,3 +2749,5 @@ __ssin_la__vmlsSinHATab:
 	.long	2139095040
 	.type	__ssin_la__vmlsSinHATab,@object
 	.size	__ssin_la__vmlsSinHATab,8
+
+      .section        .note.GNU-stack,"",@progbits

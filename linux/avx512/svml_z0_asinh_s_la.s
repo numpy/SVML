@@ -671,3 +671,5 @@ __svml_sasinh_data_internal_avx512:
 	.long	939916788
 	.type	__svml_sasinh_data_internal_avx512,@object
 	.size	__svml_sasinh_data_internal_avx512,1344
+
+      .section        .note.GNU-stack,"",@progbits

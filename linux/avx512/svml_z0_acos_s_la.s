@@ -2290,3 +2290,5 @@ _vmldACosHATab:
 	.long	0x00000000,0x80000000,0x00000000,0x00000000
 	.type	.L_2il0floatpacket.199,@object
 	.size	.L_2il0floatpacket.199,16
+
+      .section        .note.GNU-stack,"",@progbits

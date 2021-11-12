@@ -591,3 +591,5 @@ __svml_sexpm1_data_internal_avx512:
 	.long	0x3c0950ef
 	.type	.L_2il0floatpacket.56,@object
 	.size	.L_2il0floatpacket.56,4
+
+      .section        .note.GNU-stack,"",@progbits

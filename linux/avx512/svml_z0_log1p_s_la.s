@@ -1648,3 +1648,5 @@ __slog1p_la_CoutTab:
 	.long	0x3f800000
 	.type	.L_2il0floatpacket.90,@object
 	.size	.L_2il0floatpacket.90,4
+
+      .section        .note.GNU-stack,"",@progbits

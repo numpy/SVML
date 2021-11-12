@@ -1072,3 +1072,5 @@ _imldExpHATab:
 	.long	1106771968
 	.type	_imldExpHATab,@object
 	.size	_imldExpHATab,1176
+
+      .section        .note.GNU-stack,"",@progbits

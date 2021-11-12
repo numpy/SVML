@@ -654,3 +654,5 @@ __datanh_la_CoutTab:
 	.long	4293918720
 	.type	__datanh_la_CoutTab,@object
 	.size	__datanh_la_CoutTab,32
+
+      .section        .note.GNU-stack,"",@progbits

@@ -1209,3 +1209,5 @@ __scosh_la_CoutTab:
 	.long	1077247184
 	.type	__scosh_la_CoutTab,@object
 	.size	__scosh_la_CoutTab,1152
+
+      .section        .note.GNU-stack,"",@progbits
