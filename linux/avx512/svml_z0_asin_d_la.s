@@ -2549,3 +2549,5 @@ _vmldASinHATab:
 	.long	3217739776
 	.type	_vmldASinHATab,@object
 	.size	_vmldASinHATab,4504
+
+      .section        .note.GNU-stack,"",@progbits

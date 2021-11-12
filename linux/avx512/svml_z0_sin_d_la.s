@@ -17542,3 +17542,5 @@ __dsin_la_CoutTab:
 	.long	2146435072
 	.type	__dsin_la_CoutTab,@object
 	.size	__dsin_la_CoutTab,16
+
+      .section        .note.GNU-stack,"",@progbits

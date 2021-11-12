@@ -20217,3 +20217,5 @@ __dtan_la_Tab:
 	.long	2146435072
 	.type	__dtan_la_Tab,@object
 	.size	__dtan_la_Tab,16
+
+      .section        .note.GNU-stack,"",@progbits

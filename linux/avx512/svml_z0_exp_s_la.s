@@ -770,3 +770,5 @@ __svml_sexp_data_internal_avx512:
 	.long	0x40000000
 	.type	.L_2il0floatpacket.67,@object
 	.size	.L_2il0floatpacket.67,4
+
+      .section        .note.GNU-stack,"",@progbits

@@ -872,3 +872,5 @@ __svml_dasinh_data_internal_avx512:
 	.long	1031600026
 	.type	__svml_dasinh_data_internal_avx512,@object
 	.size	__svml_dasinh_data_internal_avx512,2048
+
+      .section        .note.GNU-stack,"",@progbits

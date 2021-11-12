@@ -1350,3 +1350,5 @@ __datan_la_CoutTab:
 	.long	0x00000000,0x3ff00000
 	.type	.L_2il0floatpacket.14,@object
 	.size	.L_2il0floatpacket.14,8
+
+      .section        .note.GNU-stack,"",@progbits

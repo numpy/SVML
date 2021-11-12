@@ -1713,3 +1713,5 @@ __dcosh_la_CoutTab:
 	.long	1077247184
 	.type	__dcosh_la_CoutTab,@object
 	.size	__dcosh_la_CoutTab,1152
+
+      .section        .note.GNU-stack,"",@progbits
