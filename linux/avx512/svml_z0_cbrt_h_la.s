@@ -24,20 +24,39 @@
 __svml_cbrts32:
 
         .cfi_startproc
-
-/* reduced argument R = mantissa - 1 */
+        kxnord  %k7, %k7, %k7
+        vmovdqu16 __svml_hcbrt_data_internal(%rip), %zmm31
+        vmovdqu16 64+__svml_hcbrt_data_internal(%rip), %zmm29
         vmovdqu16 128+__svml_hcbrt_data_internal(%rip), %zmm2
-
-/* polynomial ~ cbrt(mantissa) */
-        vmovdqu16 320+__svml_hcbrt_data_internal(%rip), %zmm10
+        vmovdqu16 192+__svml_hcbrt_data_internal(%rip), %zmm28
+        vmovdqu16 256+__svml_hcbrt_data_internal(%rip), %zmm4
+        vmovdqu16 320+__svml_hcbrt_data_internal(%rip), %zmm30
         vmovdqu16 384+__svml_hcbrt_data_internal(%rip), %zmm8
         vmovdqu16 448+__svml_hcbrt_data_internal(%rip), %zmm9
 
-/* will use exponent % 64 as table index */
-        vmovdqu16 256+__svml_hcbrt_data_internal(%rip), %zmm4
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray_cbrt_h:
+        cmpq    $31, %rdx
+        ja .loaddata_cbrth
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_cbrt_h
+.loaddata_cbrth:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_cbrt_h:
 
-/* 2^(expon/3)*2^(expon%3) */
-        vmovdqu16 __svml_hcbrt_data_internal(%rip), %zmm6
+        vmovdqu16 %zmm31, %zmm6
+        vmovdqu16 %zmm30, %zmm10
         vgetexpph {sae}, %zmm0, %zmm3
 
 /* mantissa(|x|) */
@@ -47,7 +66,7 @@ __svml_cbrts32:
         vfpclassph $30, %zmm0, %k1
         vaddph    {rn-sae}, %zmm4, %zmm3, %zmm5
         vsubph    {rn-sae}, %zmm2, %zmm1, %zmm11
-        vpermt2w  64+__svml_hcbrt_data_internal(%rip), %zmm5, %zmm6
+        vpermt2w  %zmm29, %zmm5, %zmm6
         vfmadd213ph {rn-sae}, %zmm8, %zmm11, %zmm10
         vfmadd213ph {rn-sae}, %zmm9, %zmm11, %zmm10
         vmulph    {rn-sae}, %zmm11, %zmm10, %zmm12
@@ -56,7 +75,7 @@ __svml_cbrts32:
  * No callout
  * sign
  */
-        vpandd    192+__svml_hcbrt_data_internal(%rip), %zmm0, %zmm7
+        vpandd    %zmm28, %zmm0, %zmm7
 
 /* add sign */
         vpord     %zmm7, %zmm6, %zmm13
@@ -64,7 +83,12 @@ __svml_cbrts32:
 
 /* fixup for +/-Inf, +/-0 */
         vmovdqu16 %zmm0, %zmm13{%k1}
-        vmovaps   %zmm13, %zmm0
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm13, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray_cbrt_h
         ret
 
         .cfi_endproc

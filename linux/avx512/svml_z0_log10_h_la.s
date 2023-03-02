@@ -23,15 +23,37 @@
 __svml_log10s32:
 
         .cfi_startproc
-
-/* reduced argument */
+        kxnord  %k7, %k7, %k7
+        vmovdqu16 64+__svml_hlog10_data_internal(%rip), %zmm31
         vmovdqu16 384+__svml_hlog10_data_internal(%rip), %zmm4
-        vmovdqu16 64+__svml_hlog10_data_internal(%rip), %zmm9
         vmovdqu16 128+__svml_hlog10_data_internal(%rip), %zmm5
         vmovdqu16 192+__svml_hlog10_data_internal(%rip), %zmm6
         vmovdqu16 256+__svml_hlog10_data_internal(%rip), %zmm7
         vmovdqu16 320+__svml_hlog10_data_internal(%rip), %zmm8
         vmovdqu16 __svml_hlog10_data_internal(%rip), %zmm11
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray__log10_h:
+        cmpq    $31, %rdx
+        ja .loaddata__log10_h
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_log10_h
+.loaddata__log10_h:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_log10_h:
+        
+        vmovdqu16 %zmm31, %zmm9
 
 /* Get exponent */
         vgetexpph {sae}, %zmm0, %zmm1
@@ -49,6 +71,13 @@ __svml_log10s32:
         vfmadd213ph {rn-sae}, %zmm8, %zmm10, %zmm9
         vmulph    {rn-sae}, %zmm10, %zmm9, %zmm12
         vfmadd213ph {rn-sae}, %zmm12, %zmm11, %zmm0
+
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray__log10_h
         ret
 
         .cfi_endproc

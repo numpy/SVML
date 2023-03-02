@@ -23,12 +23,39 @@
 __svml_log1ps32:
 
         .cfi_startproc
-
-/* No callout */
+        kxnord  %k7, %k7, %k7
         vmovdqu16 __svml_hlog1p_data_internal(%rip), %zmm6
-        vmovdqu16 192+__svml_hlog1p_data_internal(%rip), %zmm11
+        vmovdqu16 64+__svml_hlog1p_data_internal(%rip), %zmm29
+        vmovdqu16 128+__svml_hlog1p_data_internal(%rip), %zmm28
+        vmovdqu16 192+__svml_hlog1p_data_internal(%rip), %zmm27
         vmovdqu16 256+__svml_hlog1p_data_internal(%rip), %zmm14
         vmovdqu16 320+__svml_hlog1p_data_internal(%rip), %zmm15
+        vmovdqu16 384+__svml_hlog1p_data_internal(%rip), %zmm31
+        vmovdqu16 448+__svml_hlog1p_data_internal(%rip), %zmm30
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray__log1p_h:
+        cmpq    $31, %rdx
+        ja .loaddata__log1p_h
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_log1p_h
+.loaddata__log1p_h:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_log1p_h:
+
+/* No callout */
+        vmovdqu16 %zmm27, %zmm11
 
 /* x+1.0 */
         vaddph    {rn-sae}, %zmm6, %zmm0, %zmm1
@@ -65,32 +92,37 @@ __svml_log1ps32:
 
 /* mant_low, whith proper scale */
         vscalefph {rn-sae}, %zmm1, %zmm9, %zmm10
-        vmovdqu16 384+__svml_hlog1p_data_internal(%rip), %zmm9
 
 /* fixup in case Mant_low=NaN */
-        vpandd    64+__svml_hlog1p_data_internal(%rip), %zmm10, %zmm13
-        vmovdqu16 128+__svml_hlog1p_data_internal(%rip), %zmm10
+        vpandd %zmm29, %zmm10, %zmm13
+        vmovdqu16 %zmm28, %zmm10
 
 /* start polynomial */
         vfmadd213ph {rn-sae}, %zmm11, %zmm12, %zmm10
 
 /* apply correction to reduced argument */
         vaddph    {rn-sae}, %zmm13, %zmm12, %zmm11
-        vmovdqu16 448+__svml_hlog1p_data_internal(%rip), %zmm12
 
 /* polynomial */
         vfmadd213ph {rn-sae}, %zmm14, %zmm11, %zmm10
         vfmadd213ph {rn-sae}, %zmm15, %zmm11, %zmm10
-        vfmadd213ph {rn-sae}, %zmm9, %zmm11, %zmm10
+        vfmadd213ph {rn-sae}, %zmm31, %zmm11, %zmm10
 
 /* Poly*R+R */
         vfmadd213ph {rn-sae}, %zmm11, %zmm11, %zmm10
 
 /* result:  -m_expon*log(2)+poly */
-        vfnmadd213ph {rn-sae}, %zmm10, %zmm12, %zmm1
+        vfnmadd213ph {rn-sae}, %zmm10, %zmm30, %zmm1
 
 /* fixup for +0/-0/+Inf */
         vpblendmw %zmm0, %zmm1, %zmm0{%k1}
+
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray__log1p_h
         ret
 
         .cfi_endproc

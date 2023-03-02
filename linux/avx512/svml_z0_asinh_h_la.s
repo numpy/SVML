@@ -20,28 +20,54 @@
 __svml_asinhs32:
 
         .cfi_startproc
-
-/* |x| in [0, 1) : result = x+x*poly(x) */
-        vmovdqu16 192+__svml_hasinh_data_internal(%rip), %zmm5
-        vmovdqu16 128+__svml_hasinh_data_internal(%rip), %zmm2
-        vmovdqu16 256+__svml_hasinh_data_internal(%rip), %zmm6
-
-/* SelMask=1 for |x|>=1.0 */
-        vmovdqu16 __svml_hasinh_data_internal(%rip), %zmm1
-
-/* log(1+sqrt(1+y^2)) ~ poly2(y);  y in (0,1] */
+        kxnord  %k7, %k7, %k7
+        vmovdqu16 __svml_hasinh_data_internal(%rip), %zmm22
+        vmovdqu16 64+__svml_hasinh_data_internal(%rip), %zmm31
+        vmovdqu16 128+__svml_hasinh_data_internal(%rip), %zmm24
+        vmovdqu16 192+__svml_hasinh_data_internal(%rip), %zmm25
+        vmovdqu16 256+__svml_hasinh_data_internal(%rip), %zmm23
+        vmovdqu16 320+__svml_hasinh_data_internal(%rip), %zmm21
+        vmovdqu16 384+__svml_hasinh_data_internal(%rip), %zmm27
         vmovdqu16 448+__svml_hasinh_data_internal(%rip), %zmm8
-        vmovdqu16 704+__svml_hasinh_data_internal(%rip), %zmm15
-        vmovdqu16 320+__svml_hasinh_data_internal(%rip), %zmm7
         vmovdqu16 512+__svml_hasinh_data_internal(%rip), %zmm9
         vmovdqu16 576+__svml_hasinh_data_internal(%rip), %zmm11
+        vmovdqu16 640+__svml_hasinh_data_internal(%rip), %zmm30
+        vmovdqu16 704+__svml_hasinh_data_internal(%rip), %zmm15
+        vmovdqu16 768+__svml_hasinh_data_internal(%rip), %zmm29
+        vmovdqu16 832+__svml_hasinh_data_internal(%rip), %zmm28
+        vmovdqu16 896+__svml_hasinh_data_internal(%rip), %zmm26
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray_asinh_h:
+        cmpq    $31, %rdx
+        ja .loaddata_asinh
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_asinh_h
+.loaddata_asinh:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_asinh_h:
+
+        vmovdqu16 %zmm24, %zmm2
+        vmovdqu16 %zmm22, %zmm1
+        vmovdqu16 %zmm21, %zmm7
 
 /*
  * No callout
  * |x|
  */
-        vpandd    64+__svml_hasinh_data_internal(%rip), %zmm0, %zmm4
-        vfmadd213ph {rn-sae}, %zmm5, %zmm4, %zmm2
+        vpandd    %zmm31, %zmm0, %zmm4
+        vfmadd213ph {rn-sae}, %zmm25, %zmm4, %zmm2
 
 /*
  * log(|x|)
@@ -59,25 +85,23 @@ __svml_asinhs32:
 
 /* exponent correction */
         vgetexpph {sae}, %zmm12, %zmm14
-        vfmadd213ph {rn-sae}, %zmm6, %zmm4, %zmm2
+        vfmadd213ph {rn-sae}, %zmm23, %zmm4, %zmm2
 
 /* mantissa - 1 */
         vsubph    {rn-sae}, %zmm1, %zmm12, %zmm5
 
 /* log(1+R)/R */
-        vmovdqu16 640+__svml_hasinh_data_internal(%rip), %zmm6
-        vmovdqu16 768+__svml_hasinh_data_internal(%rip), %zmm12
+        vmovdqu16 %zmm30, %zmm6
         vfmadd213ph {rn-sae}, %zmm7, %zmm4, %zmm2
         vsubph    {rn-sae}, %zmm14, %zmm13, %zmm7
         vfmadd213ph {rn-sae}, %zmm15, %zmm5, %zmm6
-        vmovdqu16 832+__svml_hasinh_data_internal(%rip), %zmm13
         vfmadd213ph {rn-sae}, %zmm4, %zmm4, %zmm2
-        vfmadd213ph {rn-sae}, %zmm12, %zmm5, %zmm6
-        vfmadd213ph {rn-sae}, %zmm13, %zmm5, %zmm6
+        vfmadd213ph {rn-sae}, %zmm29, %zmm5, %zmm6
+        vfmadd213ph {rn-sae}, %zmm28, %zmm5, %zmm6
 
 /* save sign */
         vpxord    %zmm4, %zmm0, %zmm3
-        vmovdqu16 384+__svml_hasinh_data_internal(%rip), %zmm0
+        vmovdqu16 %zmm27, %zmm0
         vfmadd213ph {rn-sae}, %zmm8, %zmm10, %zmm0
         vfmadd213ph {rn-sae}, %zmm9, %zmm10, %zmm0
         vfmadd213ph {rn-sae}, %zmm11, %zmm10, %zmm0
@@ -86,14 +110,19 @@ __svml_asinhs32:
         vfmadd213ph {rn-sae}, %zmm0, %zmm5, %zmm6
 
 /* result for x>=2 */
-        vmovdqu16 896+__svml_hasinh_data_internal(%rip), %zmm0
-        vfmadd213ph {rn-sae}, %zmm6, %zmm0, %zmm7
+        vfmadd213ph {rn-sae}, %zmm6, %zmm26, %zmm7
 
 /* result = SelMask?  hPl : hPa */
         vpblendmw %zmm7, %zmm2, %zmm1{%k1}
 
 /* set sign */
         vpxord    %zmm3, %zmm1, %zmm0
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray_asinh_h
         ret
 
         .cfi_endproc

@@ -34,29 +34,50 @@
 __svml_tanhs32:
 
         .cfi_startproc
-
-/* xa = min(xa, Thres), Thres<4.0 */
+        kxnord  %k7, %k7, %k7
+        vmovdqu16 __svml_htanh_data_internal(%rip), %zmm31
+        vmovdqu16 64+__svml_htanh_data_internal(%rip), %zmm30
+        vmovdqu16 128+__svml_htanh_data_internal(%rip), %zmm29
         vmovdqu16 192+__svml_htanh_data_internal(%rip), %zmm1
-
-/* get table index */
         vmovdqu16 256+__svml_htanh_data_internal(%rip), %zmm3
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray__tanh_h:
+        cmpq    $31, %rdx
+        ja .loaddata__tanh_h
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_tanh_h
+.loaddata__tanh_h:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_tanh_h:
 
 /*
  * No callout
  * xa = |x|
  */
-        vpandd    128+__svml_htanh_data_internal(%rip), %zmm0, %zmm2
+        vpandd    %zmm29, %zmm0, %zmm2
         vminph    {sae}, %zmm2, %zmm1, %zmm6
 
 /* Shifter + xa, RZ mode */
         vaddph    {rz-sae}, %zmm3, %zmm6, %zmm4
 
 /* look up poly coefficients: c1, c2 */
-        vpermw    __svml_htanh_data_internal(%rip), %zmm4, %zmm5
+        vpermw    %zmm31, %zmm4, %zmm5
 
 /* sign(x) */
         vpxord    %zmm0, %zmm2, %zmm7
-        vpermw    64+__svml_htanh_data_internal(%rip), %zmm4, %zmm0
+        vpermw    %zmm30, %zmm4, %zmm0
 
 /* polynomial */
         vfmadd213ph {rn-sae}, %zmm5, %zmm6, %zmm0
@@ -66,6 +87,13 @@ __svml_tanhs32:
 
 /* x+x*Poly */
         vfmadd213ph {rn-sae}, %zmm8, %zmm8, %zmm0
+
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray__tanh_h
         ret
 
         .cfi_endproc

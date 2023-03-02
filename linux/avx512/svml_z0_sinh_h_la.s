@@ -27,74 +27,102 @@
 __svml_sinhs32:
 
         .cfi_startproc
-
-/* Shifter + x*log2(e) */
-        vmovdqu16 64+__svml_hsinh_data_internal(%rip), %zmm2
-        vmovdqu16 128+__svml_hsinh_data_internal(%rip), %zmm3
-
-/* Argument reduction:  x - N*log(2) */
-        vmovdqu16 192+__svml_hsinh_data_internal(%rip), %zmm4
-        vmovdqu16 576+__svml_hsinh_data_internal(%rip), %zmm11
+        kxnord  %k7, %k7, %k7
+        vmovdqu16 __svml_hsinh_data_internal(%rip), %zmm23
+        vmovdqu16 64+__svml_hsinh_data_internal(%rip), %zmm29
+        vmovdqu16 128+__svml_hsinh_data_internal(%rip), %zmm28
+        vmovdqu16 192+__svml_hsinh_data_internal(%rip), %zmm26
         vmovdqu16 256+__svml_hsinh_data_internal(%rip), %zmm5
+        vmovdqu16 320+__svml_hsinh_data_internal(%rip), %zmm31
         vmovdqu16 384+__svml_hsinh_data_internal(%rip), %zmm8
-        vmovdqu16 448+__svml_hsinh_data_internal(%rip), %zmm7
+        vmovdqu16 448+__svml_hsinh_data_internal(%rip), %zmm24
         vmovdqu16 512+__svml_hsinh_data_internal(%rip), %zmm9
-        vpandd    __svml_hsinh_data_internal(%rip), %zmm0, %zmm6
-        vfmadd213ph {rz-sae}, %zmm3, %zmm6, %zmm2
-        vsubph    {rn-sae}, %zmm3, %zmm2, %zmm10
+        vmovdqu16 576+__svml_hsinh_data_internal(%rip), %zmm11
+        vmovdqu16 640+__svml_hsinh_data_internal(%rip), %zmm30
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray__sinh_h:
+        cmpq    $31, %rdx
+        ja .loaddata__sinh_h
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_sinh_h
+.loaddata__sinh_h:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_sinh_h:
+
+        vmovdqu16 %zmm29, %zmm2
+        vmovdqu16 %zmm24, %zmm7
+        vpandd    %zmm23, %zmm0, %zmm6
+        vfmadd213ph {rz-sae}, %zmm28, %zmm6, %zmm2
+        vsubph    {rn-sae}, %zmm28, %zmm2, %zmm10
 
 /* hN - 1 */
         vsubph    {rn-sae}, %zmm11, %zmm10, %zmm12
 
 /* save sign */
         vpxord    %zmm0, %zmm6, %zmm1
-        vfnmadd231ph {rn-sae}, %zmm10, %zmm4, %zmm6
+        vfnmadd231ph {rn-sae}, %zmm10, %zmm26, %zmm6
 
 /* 2^(hN-1) */
-        vscalefph {rn-sae}, %zmm12, %zmm11, %zmm4
+        vscalefph {rn-sae}, %zmm12, %zmm11, %zmm25
         vfnmadd231ph {rn-sae}, %zmm10, %zmm5, %zmm6
 
 /* fixup for Inf results */
-        vfpclassph $8, %zmm4, %k1
+        vfpclassph $8, %zmm25, %k1
 
 /* 2^(-hN)*2 */
-        vrcpph    %zmm4, %zmm3
+        vrcpph    %zmm25, %zmm27
 
 /* exp(R) -1 */
         vmovaps   %zmm7, %zmm0
-        vpandd    320+__svml_hsinh_data_internal(%rip), %zmm6, %zmm13
+        vpandd    %zmm31, %zmm6, %zmm13
 
 /* exp(-R) -1 */
         vfnmadd231ph {rn-sae}, %zmm13, %zmm8, %zmm7
         vfmadd231ph {rn-sae}, %zmm13, %zmm8, %zmm0
 
 /* 2^(-hN)*R */
-        vmulph    {rn-sae}, %zmm13, %zmm3, %zmm14
+        vmulph    {rn-sae}, %zmm13, %zmm27, %zmm14
 
 /* 2^hN*R */
-        vmulph    {rn-sae}, %zmm13, %zmm4, %zmm2
+        vmulph    {rn-sae}, %zmm13, %zmm25, %zmm2
         vfnmadd213ph {rn-sae}, %zmm9, %zmm13, %zmm7
         vfmadd213ph {rn-sae}, %zmm9, %zmm13, %zmm0
         vfnmadd213ph {rn-sae}, %zmm11, %zmm13, %zmm7
         vfmadd213ph {rn-sae}, %zmm11, %zmm13, %zmm0
 
-/* T - Tm*0.25 */
-        vmovdqu16 640+__svml_hsinh_data_internal(%rip), %zmm13
-
 /* -Tm*mpoly*0.25 */
         vmulph    {rn-sae}, %zmm14, %zmm7, %zmm15
-        vfnmadd213ph {rn-sae}, %zmm4, %zmm13, %zmm3
-        vmulph    {rn-sae}, %zmm13, %zmm15, %zmm7
+        vfnmadd213ph {rn-sae}, %zmm25, %zmm30, %zmm27
+        vmulph    {rn-sae}, %zmm30, %zmm15, %zmm7
 
 /* T*poly - Tm*mpoly */
         vfmadd213ph {rn-sae}, %zmm7, %zmm2, %zmm0
-        vaddph    {rn-sae}, %zmm3, %zmm0, %zmm0
+        vaddph    {rn-sae}, %zmm27, %zmm0, %zmm0
 
 /* fixup */
-        vmovdqu16 %zmm4, %zmm0{%k1}
+        vmovdqu16 %zmm25, %zmm0{%k1}
 
 /* fix sign */
         vpxord    %zmm1, %zmm0, %zmm0
+
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray__sinh_h
         ret
 
         .cfi_endproc

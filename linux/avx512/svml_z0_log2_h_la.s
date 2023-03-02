@@ -23,20 +23,42 @@
 __svml_log2s32:
 
         .cfi_startproc
-
-/* No callout */
+        kxnord  %k7, %k7, %k7
         vmovdqu16 __svml_hlog2_data_internal(%rip), %zmm1
+        vmovdqu16 64+__svml_hlog2_data_internal(%rip), %zmm31
         vmovdqu16 128+__svml_hlog2_data_internal(%rip), %zmm3
         vmovdqu16 192+__svml_hlog2_data_internal(%rip), %zmm6
         vmovdqu16 256+__svml_hlog2_data_internal(%rip), %zmm7
         vmovdqu16 320+__svml_hlog2_data_internal(%rip), %zmm8
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray__log2_h:
+        cmpq    $31, %rdx
+        ja .loaddata__log2_h
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_log2_h
+.loaddata__log2_h:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_log2_h:
+
+/* No callout */
 
 /* exponent */
         vgetexpph {sae}, %zmm0, %zmm4
 
 /* reduce mantissa to [.75, 1.5) */
         vgetmantph $11, {sae}, %zmm0, %zmm2
-        vmovdqu16 64+__svml_hlog2_data_internal(%rip), %zmm0
 
 /* reduced argument */
         vsubph    {rn-sae}, %zmm1, %zmm2, %zmm9
@@ -45,6 +67,7 @@ __svml_log2s32:
         vgetexpph {sae}, %zmm2, %zmm5
 
 /* start polynomial */
+        vmovdqu16 %zmm31, %zmm0
         vfmadd213ph {rn-sae}, %zmm3, %zmm9, %zmm0
 
 /* exponent */
@@ -57,6 +80,12 @@ __svml_log2s32:
 
 /* Poly*R+expon */
         vfmadd213ph {rn-sae}, %zmm10, %zmm9, %zmm0
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray__log2_h
         ret
 
         .cfi_endproc

@@ -27,22 +27,45 @@
 __svml_coshs32:
 
         .cfi_startproc
-
-/* Shifter + x*log2(e) */
-        vmovdqu16 64+__svml_hcosh_data_internal(%rip), %zmm1
+        vmovdqu16 __svml_hcosh_data_internal(%rip), %zmm31
+        vmovdqu16 64+__svml_hcosh_data_internal(%rip), %zmm30
         vmovdqu16 128+__svml_hcosh_data_internal(%rip), %zmm2
-
-/* Argument reduction:  x - N*log(2) */
         vmovdqu16 192+__svml_hcosh_data_internal(%rip), %zmm3
         vmovdqu16 256+__svml_hcosh_data_internal(%rip), %zmm4
         vmovdqu16 320+__svml_hcosh_data_internal(%rip), %zmm5
-        vmovdqu16 384+__svml_hcosh_data_internal(%rip), %zmm10
+        vmovdqu16 384+__svml_hcosh_data_internal(%rip), %zmm29
         vmovdqu16 448+__svml_hcosh_data_internal(%rip), %zmm6
         vmovdqu16 512+__svml_hcosh_data_internal(%rip), %zmm9
+        vmovdqu16 576+__svml_hcosh_data_internal(%rip), %zmm12
+        kxnord  %k7, %k7, %k7
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray_cosh_h:
+        cmpq    $31, %rdx
+        ja .loaddata_coshh
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_cosh_h
+.loaddata_coshh:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_cosh_h:
+
+/* Shifter + x*log2(e) */
+        vmovdqu16 %zmm30, %zmm1
+        vmovdqu16 %zmm29, %zmm10
 
 /* poly + 0.25*mpoly ~ (exp(x)+exp(-x))*0.5 */
-        vmovdqu16 576+__svml_hcosh_data_internal(%rip), %zmm12
-        vpandd    __svml_hcosh_data_internal(%rip), %zmm0, %zmm7
+        vpandd %zmm31, %zmm0, %zmm7
         vfmadd213ph {rz-sae}, %zmm2, %zmm7, %zmm1
         vsubph    {rn-sae}, %zmm2, %zmm1, %zmm8
         vfnmadd231ph {rn-sae}, %zmm8, %zmm3, %zmm7
@@ -61,6 +84,12 @@ __svml_coshs32:
         vscalefph {rn-sae}, %zmm11, %zmm10, %zmm13
         vrcpph    %zmm13, %zmm0
         vfmadd213ph {rn-sae}, %zmm13, %zmm12, %zmm0
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray_cosh_h
         ret
 
         .cfi_endproc

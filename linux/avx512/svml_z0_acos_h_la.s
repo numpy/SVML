@@ -22,16 +22,40 @@ __svml_acoss32:
 
         .cfi_startproc
 
+        vmovdqu16 __svml_hacos_data_internal(%rip), %zmm30
         vmovdqu16 64+__svml_hacos_data_internal(%rip), %zmm1
+        vmovdqu16 128+__svml_hacos_data_internal(%rip), %zmm31
         vmovdqu16 192+__svml_hacos_data_internal(%rip), %zmm5
+        vmovdqu16 256+__svml_hacos_data_internal(%rip), %zmm29
         vmovdqu16 320+__svml_hacos_data_internal(%rip), %zmm7
-
-/* High = Pi2 for |x|<0.5, else Pi for x<-0.5, 0 for x>0.5 */
-        vmovdqu16 128+__svml_hacos_data_internal(%rip), %zmm3
-
-/* set xa = -2*y if SelMask=1 */
-        vmovdqu16 448+__svml_hacos_data_internal(%rip), %zmm11
         vmovdqu16 384+__svml_hacos_data_internal(%rip), %zmm9
+        vmovdqu16 448+__svml_hacos_data_internal(%rip), %zmm11
+
+        kxnord  %k7, %k7, %k7
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray_acos_h:
+        cmpq    $31, %rdx
+        ja .loaddata
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_acos_h
+.loaddata:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_acos_h:
+
+/* restore over-written constants */
+        vmovdqu16 %zmm31, %zmm3
 
 /* x^2 */
         vmulph    {rn-sae}, %zmm0, %zmm0, %zmm2
@@ -43,7 +67,7 @@ __svml_acoss32:
  * No callout
  * xa = |x|
  */
-        vpandd    __svml_hacos_data_internal(%rip), %zmm0, %zmm12
+        vpandd  %zmm30, %zmm0, %zmm12
         vfnmadd231ph {rn-sae}, %zmm12, %zmm1, %zmm10
 
 /* SelMask=1 for |x|>=0.5 */
@@ -63,7 +87,7 @@ __svml_acoss32:
         vpxord    %zmm0, %zmm12, %zmm13
 
 /* polynomial */
-        vmovdqu16 256+__svml_hacos_data_internal(%rip), %zmm0
+        vmovdqu16 %zmm29, %zmm0
         vmulph    {rn-sae}, %zmm11, %zmm10, %zmm12{%k2}
 
 /* polynomial */
@@ -75,6 +99,13 @@ __svml_acoss32:
 
 /* result */
         vfnmadd213ph {rn-sae}, %zmm3, %zmm14, %zmm0
+
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray_acos_h
         ret
 
         .cfi_endproc

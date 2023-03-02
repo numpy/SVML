@@ -23,6 +23,32 @@
 __svml_logs32:
 
         .cfi_startproc
+        kxnord  %k7, %k7, %k7
+        vmovdqu16 __svml_hlog_data_internal(%rip), %zmm31
+        vmovdqu16 64+__svml_hlog_data_internal(%rip), %zmm30
+        vmovdqu16 128+__svml_hlog_data_internal(%rip), %zmm29
+        vmovdqu16 192+__svml_hlog_data_internal(%rip), %zmm28
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray__ln_h:
+        cmpq    $31, %rdx
+        ja .loaddata__ln_h
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_ln_h
+.loaddata__ln_h:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_ln_h:
 
 /*
  * Variables:
@@ -39,29 +65,29 @@ __svml_logs32:
 /* exponent corrrection */
         vgetexpph {sae}, %zmm2, %zmm5
 
-/* reduced argument */
-        vmovdqu16 __svml_hlog_data_internal(%rip), %zmm1
-
-/* expon*log(2) */
-        vmovdqu16 64+__svml_hlog_data_internal(%rip), %zmm8
-
 /* table index */
         vpsrlw    $5, %zmm2, %zmm3
 
 /* exponent corrrection */
         vsubph    {rn-sae}, %zmm5, %zmm4, %zmm7
-        vsubph    {rn-sae}, %zmm1, %zmm2, %zmm0
+        vsubph    {rn-sae}, %zmm31, %zmm2, %zmm0
 
 /* polynomial coefficients */
-        vpermw    128+__svml_hlog_data_internal(%rip), %zmm3, %zmm9
-        vpermw    192+__svml_hlog_data_internal(%rip), %zmm3, %zmm6
-        vmulph    {rn-sae}, %zmm8, %zmm7, %zmm10
+        vpermw    %zmm29, %zmm3, %zmm9
+        vpermw    %zmm28, %zmm3, %zmm6
+        vmulph    {rn-sae}, %zmm30, %zmm7, %zmm10
 
 /* hC0+hC1*R */
         vfmadd213ph {rn-sae}, %zmm6, %zmm0, %zmm9
 
 /* result res = R*P + Expon */
         vfmadd213ph {rn-sae}, %zmm10, %zmm9, %zmm0
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray__ln_h
         ret
 
         .cfi_endproc

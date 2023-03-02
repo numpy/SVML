@@ -25,19 +25,43 @@
 __svml_atanhs32:
 
         .cfi_startproc
+        kxnord  %k7, %k7, %k7
+        vmovdqu16 __svml_hatanh_data_internal(%rip), %zmm31
+        vmovdqu16 64+__svml_hatanh_data_internal(%rip), %zmm30
+        vmovdqu16 128+__svml_hatanh_data_internal(%rip), %zmm29
+        vmovdqu16 192+__svml_hatanh_data_internal(%rip), %zmm28
+        vmovdqu16 256+__svml_hatanh_data_internal(%rip), %zmm27
+        vmovdqu16 320+__svml_hatanh_data_internal(%rip), %zmm26
 
-/* xa = |x| */
-        vmovdqu16 192+__svml_hatanh_data_internal(%rip), %zmm1
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray_atanh_h:
+        cmpq    $31, %rdx
+        ja .loaddata_atanhh
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_atanh_h
+.loaddata_atanhh:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_atanh_h:
 
 /*
  * reduced argument: 4*(1-|x|)
  * scaling by 4 to get around limited FP16 range for coefficient representation
  */
-        vmovdqu16 256+__svml_hatanh_data_internal(%rip), %zmm3
+        vmovdqu16 %zmm27, %zmm3
 
 /* prepare special case mask */
-        vmovdqu16 320+__svml_hatanh_data_internal(%rip), %zmm9
-        vpandd    %zmm1, %zmm0, %zmm2
+        vpandd    %zmm28, %zmm0, %zmm2
         vfnmadd213ph {rn-sae}, %zmm3, %zmm2, %zmm3
 
 /* get table index */
@@ -45,12 +69,12 @@ __svml_atanhs32:
 
 /* Special result */
         vrsqrtph  %zmm3, %zmm7
-        vcmpph    $18, {sae}, %zmm9, %zmm3, %k1
+        vcmpph    $18, {sae}, %zmm26, %zmm3, %k1
 
 /* look up poly coefficients: c1, c2, c3 */
-        vpermw    128+__svml_hatanh_data_internal(%rip), %zmm4, %zmm10
-        vpermw    64+__svml_hatanh_data_internal(%rip), %zmm4, %zmm5
-        vpermw    __svml_hatanh_data_internal(%rip), %zmm4, %zmm6
+        vpermw    %zmm29, %zmm4, %zmm10
+        vpermw    %zmm30, %zmm4, %zmm5
+        vpermw    %zmm31, %zmm4, %zmm6
 
 /* polynomial */
         vfmadd213ph {rn-sae}, %zmm5, %zmm3, %zmm10
@@ -58,9 +82,15 @@ __svml_atanhs32:
 
 /* x+x*Poly */
         vfmadd213ph {rn-sae}, %zmm0, %zmm0, %zmm10
-        vpandnd   %zmm0, %zmm1, %zmm8
+        vpandnd   %zmm0, %zmm28, %zmm8
         vpord     %zmm8, %zmm7, %zmm11
         vpblendmw %zmm11, %zmm10, %zmm0{%k1}
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray_atanh_h
         ret
 
         .cfi_endproc

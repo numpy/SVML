@@ -42,16 +42,39 @@
 __svml_exp2s32:
 
         .cfi_startproc
+        kxnord  %k7, %k7, %k7
+        vmovdqu16 __svml_hexp2_data_internal(%rip), %zmm31
+        vmovdqu16 64+__svml_hexp2_data_internal(%rip), %zmm1
+        vmovdqu16 128+__svml_hexp2_data_internal(%rip), %zmm2
+        vmovdqu16 192+__svml_hexp2_data_internal(%rip), %zmm4
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray_exp2_h:
+        cmpq    $31, %rdx
+        ja .loaddata_exp2_h
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_exp2_h
+.loaddata_exp2_h:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_exp2_h:
 
 /*
  * No callout
  * reduce argument to [0, 1), i.e. x-floor(x)
  */
         vreduceph $9, {sae}, %zmm0, %zmm3
-        vmovdqu16 __svml_hexp2_data_internal(%rip), %zmm5
-        vmovdqu16 64+__svml_hexp2_data_internal(%rip), %zmm1
-        vmovdqu16 128+__svml_hexp2_data_internal(%rip), %zmm2
-        vmovdqu16 192+__svml_hexp2_data_internal(%rip), %zmm4
+        vmovdqu16 %zmm31, %zmm5
 
 /* start polynomial */
         vfmadd213ph {rn-sae}, %zmm1, %zmm3, %zmm5
@@ -60,6 +83,12 @@ __svml_exp2s32:
 
 /* poly*2^floor(x) */
         vscalefph {rn-sae}, %zmm0, %zmm5, %zmm0
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray_exp2_h
         ret
 
         .cfi_endproc

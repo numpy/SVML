@@ -21,19 +21,36 @@
 __svml_asins32:
 
         .cfi_startproc
-
+        kxnord  %k7, %k7, %k7
+        vmovdqu16 __svml_hasin_data_internal(%rip), %zmm30
         vmovdqu16 64+__svml_hasin_data_internal(%rip), %zmm1
-
-/* High = SelMask? Pi2 : 0 */
+        vmovdqu16 128+__svml_hasin_data_internal(%rip), %zmm29
         vmovdqu16 192+__svml_hasin_data_internal(%rip), %zmm3
-
-/* polynomial */
-        vmovdqu16 256+__svml_hasin_data_internal(%rip), %zmm12
+        vmovdqu16 256+__svml_hasin_data_internal(%rip), %zmm31
         vmovdqu16 320+__svml_hasin_data_internal(%rip), %zmm5
         vmovdqu16 384+__svml_hasin_data_internal(%rip), %zmm7
-
-/* set xa = -2*y if SelMask=1 */
         vmovdqu16 448+__svml_hasin_data_internal(%rip), %zmm9
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray_asin_h:
+        cmpq    $31, %rdx
+        ja .loaddata_asinh
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_asin_h
+.loaddata_asinh:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_asin_h:
 
 /* x^2 */
         vmulph    {rn-sae}, %zmm0, %zmm0, %zmm2
@@ -45,7 +62,7 @@ __svml_asins32:
  * No callout
  * xa = |x|
  */
-        vpandd    __svml_hasin_data_internal(%rip), %zmm0, %zmm10
+        vpandd %zmm30, %zmm0, %zmm10
         vfnmadd231ph {rn-sae}, %zmm10, %zmm1, %zmm8
 
 /* SelMask=1 for |x|>=0.5 */
@@ -59,9 +76,10 @@ __svml_asins32:
 
 /* set x2=y for |x|>=0.5 */
         vminph    {sae}, %zmm8, %zmm2, %zmm6
-        vpblendmw 128+__svml_hasin_data_internal(%rip), %zmm3, %zmm11{%k2}
+        vpblendmw %zmm29, %zmm3, %zmm11{%k2}
         vmulph    {rn-sae}, %zmm4, %zmm8, %zmm8{%k1}
 
+        vmovdqu16 %zmm31, %zmm12
 /* polynomial */
         vfmadd213ph {rn-sae}, %zmm5, %zmm6, %zmm12
         vfmadd213ph {rn-sae}, %zmm7, %zmm6, %zmm12
@@ -73,6 +91,11 @@ __svml_asins32:
 /* result */
         vfmadd213ph {rn-sae}, %zmm11, %zmm10, %zmm12
         vpxord    %zmm13, %zmm12, %zmm0
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray_asin_h
         ret
 
         .cfi_endproc

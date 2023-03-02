@@ -25,17 +25,40 @@
 __svml_expm1s32:
 
         .cfi_startproc
-
-/* No callout */
-        vmovups   __svml_hexpm1_data_internal(%rip), %zmm2
-        vmovups   64+__svml_hexpm1_data_internal(%rip), %zmm5
-        vmovups   192+__svml_hexpm1_data_internal(%rip), %zmm11
+        kxnord  %k7, %k7, %k7
+        vmovups   __svml_hexpm1_data_internal(%rip), %zmm30
+        vmovups   64+__svml_hexpm1_data_internal(%rip), %zmm31
         vmovups   128+__svml_hexpm1_data_internal(%rip), %zmm6
+        vmovups   192+__svml_hexpm1_data_internal(%rip), %zmm29
         vmovups   256+__svml_hexpm1_data_internal(%rip), %zmm7
         vmovups   320+__svml_hexpm1_data_internal(%rip), %zmm8
-
-/* 2^N */
         vmovups   384+__svml_hexpm1_data_internal(%rip), %zmm15
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray_expm1_h:
+        cmpq    $31, %rdx
+        ja .loaddata_expm1_h
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_expm1_h
+.loaddata_expm1_h:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_expm1_h:
+
+/* No callout */
+        vmovups   %zmm30, %zmm2
+        vmovups   %zmm29, %zmm11
+        vmovups   %zmm31, %zmm5
 
 /* polynomial ~ expm1(R)/R */
         vmovaps   %zmm11, %zmm9
@@ -83,6 +106,12 @@ __svml_expm1s32:
         vcvtps2phx %zmm2, %ymm3
         vcvtps2phx %zmm4, %ymm5
         vinsertf32x8 $1, %ymm5, %zmm3, %zmm0
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray_expm1_h
 
 /*
  * #else  _LA_, _EP_

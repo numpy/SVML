@@ -25,15 +25,38 @@ __svml_exps32:
 
         .cfi_startproc
 
-/* Adjust shifter */
-        vmovdqu16 64+__svml_hexp_data_internal(%rip), %zmm2
-
-/* Shifter + x*log2(e) */
-        vmovdqu16 128+__svml_hexp_data_internal(%rip), %zmm5
-
-/* Argument reduction:  x - N*log(2) */
+        kxnord  %k7, %k7, %k7
+        vmovdqu16 __svml_hexp_data_internal(%rip), %zmm31
+        vmovdqu16 64+__svml_hexp_data_internal(%rip), %zmm28
+        vmovdqu16 128+__svml_hexp_data_internal(%rip), %zmm27
         vmovdqu16 192+__svml_hexp_data_internal(%rip), %zmm3
         vmovdqu16 256+__svml_hexp_data_internal(%rip), %zmm4
+        vmovdqu16 320+__svml_hexp_data_internal(%rip), %zmm30
+        vmovdqu16 448+__svml_hexp_data_internal(%rip), %zmm29
+
+/* npy_half* in -> %rdi, npy_half* out -> %rsi, size_t N -> %rdx */
+.looparray_exp_h:
+        cmpq    $31, %rdx
+        ja .loaddata_exp_h
+/* set up mask %k7 for masked load instruction */
+        movl    $1, %eax
+        movl    %edx, %ecx
+        sall    %cl, %eax
+        subl    $1, %eax
+        kmovd   %eax, %k7
+/* Constant required for masked load */
+        movl    $15360, %eax
+        vpbroadcastw    %eax, %zmm0
+        vmovdqu16 (%rdi), %zmm0{%k7}
+        jmp .funcbegin_exp_h
+.loaddata_exp_h:
+        vmovdqu16 (%rdi), %zmm0
+        addq $64, %rdi
+        
+.funcbegin_exp_h:
+
+        vmovdqu16 %zmm28, %zmm2
+        vmovdqu16 %zmm27, %zmm5
 
 /*
  * Variables:
@@ -46,7 +69,7 @@ __svml_exps32:
  */
         vpxord    %zmm1, %zmm1, %zmm1
         vpcmpgtw  %zmm1, %zmm0, %k1
-        vpsubw    __svml_hexp_data_internal(%rip), %zmm2, %zmm2{%k1}
+        vpsubw %zmm31, %zmm2, %zmm2{%k1}
         vfmadd213ph {rz-sae}, %zmm2, %zmm0, %zmm5
         vsubph    {rn-sae}, %zmm2, %zmm5, %zmm8
 
@@ -54,7 +77,7 @@ __svml_exps32:
  * 2^(k/32) (k in 0..31)
  * table value: index in last 5 bits of S
  */
-        vpermw    320+__svml_hexp_data_internal(%rip), %zmm5, %zmm6
+        vpermw %zmm30, %zmm5, %zmm6
         vfmadd231ph {rn-sae}, %zmm8, %zmm3, %zmm0
         vfmadd231ph {rn-sae}, %zmm8, %zmm4, %zmm0
 
@@ -62,10 +85,16 @@ __svml_exps32:
         vfmadd213ph {rn-sae}, %zmm6, %zmm0, %zmm6
 
 /* Fixup for sign of underflow result */
-        vpandd    448+__svml_hexp_data_internal(%rip), %zmm6, %zmm7
+        vpandd %zmm29, %zmm6, %zmm7
 
 /* (T+T*R)*2^floor(N) */
         vscalefph {rn-sae}, %zmm8, %zmm7, %zmm0
+/* store result to our array and adjust pointers */
+        vmovdqu16 %zmm0, (%rsi){%k7}
+        addq $64, %rsi
+        subq $32, %rdx
+        cmpq $0, %rdx
+        jg .looparray_exp_h
         ret
 
         .cfi_endproc
