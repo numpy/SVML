@@ -244,3 +244,4 @@ __svml_hsin_data_internal:
 	.endr
         .type	__svml_hsin_data_internal,@object
         .size	__svml_hsin_data_internal,896
+	 .section        .note.GNU-stack,"",@progbits

@@ -143,3 +143,4 @@ __svml_hacos_data_internal:
 	.endr
         .type	__svml_hacos_data_internal,@object
         .size	__svml_hacos_data_internal,512
+	 .section        .note.GNU-stack,"",@progbits

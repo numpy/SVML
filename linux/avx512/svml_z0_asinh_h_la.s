@@ -181,3 +181,4 @@ __svml_hasinh_data_internal:
 	.endr
         .type	__svml_hasinh_data_internal,@object
         .size	__svml_hasinh_data_internal,960
+	 .section        .note.GNU-stack,"",@progbits

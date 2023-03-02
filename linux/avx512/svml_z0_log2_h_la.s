@@ -150,3 +150,4 @@ __svml_hlog2_data_internal:
 	.endr
         .type	__svml_hlog2_data_internal,@object
         .size	__svml_hlog2_data_internal,1088
+	 .section        .note.GNU-stack,"",@progbits

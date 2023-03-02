@@ -133,3 +133,4 @@ __svml_hasin_data_internal:
 	.endr
         .type	__svml_hasin_data_internal,@object
         .size	__svml_hasin_data_internal,512
+	 .section        .note.GNU-stack,"",@progbits

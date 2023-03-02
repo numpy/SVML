@@ -133,3 +133,4 @@ __svml_hcosh_data_internal:
 	.endr
         .type	__svml_hcosh_data_internal,@object
         .size	__svml_hcosh_data_internal,640
+	 .section        .note.GNU-stack,"",@progbits

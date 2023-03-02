@@ -191,3 +191,4 @@ __svml_hexp_data_internal:
 	.endr
         .type	__svml_hexp_data_internal,@object
         .size	__svml_hexp_data_internal,1152
+	 .section        .note.GNU-stack,"",@progbits

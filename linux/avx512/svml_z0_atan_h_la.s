@@ -136,3 +136,4 @@ __svml_hatan_data_internal:
 	.endr
         .type	__svml_hatan_data_internal,@object
         .size	__svml_hatan_data_internal,576
+	 .section        .note.GNU-stack,"",@progbits

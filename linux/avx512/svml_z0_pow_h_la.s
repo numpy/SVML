@@ -278,3 +278,4 @@ __svml_hpow_data_internal:
 	.endr
         .type	__svml_hpow_data_internal,@object
         .size	__svml_hpow_data_internal,704
+	 .section        .note.GNU-stack,"",@progbits

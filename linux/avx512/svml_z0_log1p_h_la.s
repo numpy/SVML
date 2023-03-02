@@ -160,3 +160,4 @@ __svml_hlog1p_data_internal:
 	.endr
         .type	__svml_hlog1p_data_internal,@object
         .size	__svml_hlog1p_data_internal,512
+	 .section        .note.GNU-stack,"",@progbits

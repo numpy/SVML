@@ -185,3 +185,4 @@ __svml_hacosh_data_internal:
 	.endr
         .type	__svml_hacosh_data_internal,@object
         .size	__svml_hacosh_data_internal,832
+	 .section        .note.GNU-stack,"",@progbits
