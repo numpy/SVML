@@ -59,7 +59,7 @@ __svml_exp2s32:
         subl    $1, %eax
         kmovd   %eax, %k7
 /* Constant required for masked load */
-        movl    $15360, %eax
+        movl    $0, %eax
         vpbroadcastw    %eax, %zmm0
         vmovdqu16 (%rdi), %zmm0{%k7}
         jmp .funcbegin_exp2_h
