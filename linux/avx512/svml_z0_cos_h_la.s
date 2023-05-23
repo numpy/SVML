@@ -71,8 +71,13 @@ __svml_coss32:
 .loaddata__cos_h:
         vmovdqu16 (%rdi), %zmm0
         addq $64, %rdi
-        
+
 .funcbegin_cos_h:
+
+/* Check for +/- INF */
+        vfpclassph $24, %zmm0, %k6
+/* Dummy vsubph instruction to raise an invalid */
+        vsubph  %zmm0, %zmm0, %zmm8{%k6}{z}
 
         vmovdqu16 %zmm22, %zmm8
         vmovdqu16 %zmm21, %zmm15
