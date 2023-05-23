@@ -57,8 +57,13 @@ __svml_sins32:
 .loaddata__sin_h:
         vmovdqu16 (%rdi), %zmm0
         addq $64, %rdi
-        
+
 .funcbegin_sin_h:
+
+/* Check for +/- INF */
+        vfpclassph $24, %zmm0, %k6
+/* Dummy vsubph instruction to raise an invalid */
+        vsubph  %zmm0, %zmm0, %zmm9{%k6}{z}
 
         vmovdqu16 %zmm23, %zmm5
         vmovdqu16 %zmm22, %zmm4
