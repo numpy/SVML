@@ -2136,3 +2136,4 @@ __scosh_ha_CoutTab:
 	.long	1077247184
 	.type	__scosh_ha_CoutTab,@object
 	.size	__scosh_ha_CoutTab,1152
+      	.section        .note.GNU-stack,"",@progbits

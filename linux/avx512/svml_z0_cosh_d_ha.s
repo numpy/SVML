@@ -1949,3 +1949,4 @@ __dcosh_ha_CoutTab:
 	.long	1077247184
 	.type	__dcosh_ha_CoutTab,@object
 	.size	__dcosh_ha_CoutTab,1152
+      	.section        .note.GNU-stack,"",@progbits

@@ -882,3 +882,4 @@ __dexp2_ha__imldExp2HATab:
 	.long	0
 	.type	__dexp2_ha__imldExp2HATab,@object
 	.size	__dexp2_ha__imldExp2HATab,1152
+      	.section        .note.GNU-stack,"",@progbits

@@ -1027,3 +1027,4 @@ _vmldExpHATab:
 	.long	0xbf800000
 	.type	.L_2il0floatpacket.76,@object
 	.size	.L_2il0floatpacket.76,4
+      	.section        .note.GNU-stack,"",@progbits

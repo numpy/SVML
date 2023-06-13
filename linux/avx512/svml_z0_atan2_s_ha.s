@@ -2369,3 +2369,4 @@ __satan2_ha_CoutTab:
 	.long	1101004800
 	.type	__satan2_ha_CoutTab,@object
 	.size	__satan2_ha_CoutTab,2008
+      	.section        .note.GNU-stack,"",@progbits

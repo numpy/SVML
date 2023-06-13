@@ -730,3 +730,4 @@ __sacosh_ha__iml_sacosh_cout_tab:
 	.long	2139095040
 	.type	__sacosh_ha__iml_sacosh_cout_tab,@object
 	.size	__sacosh_ha__iml_sacosh_cout_tab,12
+      	.section        .note.GNU-stack,"",@progbits

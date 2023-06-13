@@ -1131,3 +1131,4 @@ _imldExpHATab:
 	.long	0x00000000,0xbff00000
 	.type	.L_2il0floatpacket.79,@object
 	.size	.L_2il0floatpacket.79,8
+      	.section        .note.GNU-stack,"",@progbits

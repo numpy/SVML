@@ -3058,3 +3058,4 @@ __dtanh_ha__imldTanhTab:
 	.long	3220176896
 	.type	__dtanh_ha__imldTanhTab,@object
 	.size	__dtanh_ha__imldTanhTab,16
+      	.section        .note.GNU-stack,"",@progbits

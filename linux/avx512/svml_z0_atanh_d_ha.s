@@ -693,3 +693,4 @@ __datanh_ha_CoutTab:
 	.long	4293918720
 	.type	__datanh_ha_CoutTab,@object
 	.size	__datanh_ha_CoutTab,32
+      	.section        .note.GNU-stack,"",@progbits

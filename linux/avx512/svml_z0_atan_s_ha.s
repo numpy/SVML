@@ -393,3 +393,4 @@ __svml_satan_ha_data_internal_avx512:
 	.long	3198855850
 	.type	__svml_satan_ha_data_internal_avx512,@object
 	.size	__svml_satan_ha_data_internal_avx512,1024
+      	.section        .note.GNU-stack,"",@progbits

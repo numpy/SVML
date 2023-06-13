@@ -1034,3 +1034,4 @@ __scbrt_ha_vscbrt_ha_cout_data:
 	.long	0xbd288f47
 	.type	.L_2il0floatpacket.35,@object
 	.size	.L_2il0floatpacket.35,4
+      	.section        .note.GNU-stack,"",@progbits

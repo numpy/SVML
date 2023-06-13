@@ -1165,3 +1165,4 @@ __stanh_ha__imlsTanhTab:
 	.long	3212836864
 	.type	__stanh_ha__imlsTanhTab,@object
 	.size	__stanh_ha__imlsTanhTab,8
+      	.section        .note.GNU-stack,"",@progbits

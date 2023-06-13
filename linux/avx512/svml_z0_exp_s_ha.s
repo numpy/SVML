@@ -1009,3 +1009,4 @@ _vmldExpHATab:
 	.long	1106771968
 	.type	_vmldExpHATab,@object
 	.size	_vmldExpHATab,1176
+      	.section        .note.GNU-stack,"",@progbits

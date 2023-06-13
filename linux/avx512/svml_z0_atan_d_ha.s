@@ -1383,3 +1383,4 @@ __datan_ha_CoutTab:
 	.long	1101004800
 	.type	__datan_ha_CoutTab,@object
 	.size	__datan_ha_CoutTab,1936
+      	.section        .note.GNU-stack,"",@progbits

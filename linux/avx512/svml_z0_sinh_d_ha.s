@@ -5529,3 +5529,4 @@ __dsinh_ha_CoutTab:
 	.long	0x00000000,0x80000000,0x00000000,0x00000000
 	.type	.L_2il0floatpacket.100,@object
 	.size	.L_2il0floatpacket.100,16
+      	.section        .note.GNU-stack,"",@progbits

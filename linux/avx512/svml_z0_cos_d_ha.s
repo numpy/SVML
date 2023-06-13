@@ -17660,3 +17660,4 @@ __dcos_ha_CoutTab:
 	.long	2146435072
 	.type	__dcos_ha_CoutTab,@object
 	.size	__dcos_ha_CoutTab,16
+      	.section        .note.GNU-stack,"",@progbits

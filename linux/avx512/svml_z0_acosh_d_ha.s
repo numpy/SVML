@@ -970,3 +970,4 @@ __dacosh_ha_CoutTab:
 	.long	4293918720
 	.type	__dacosh_ha_CoutTab,@object
 	.size	__dacosh_ha_CoutTab,32
+      	.section        .note.GNU-stack,"",@progbits

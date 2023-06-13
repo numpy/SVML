@@ -20003,3 +20003,4 @@ __dtan_ha_Tab:
 	.long	2146435072
 	.type	__dtan_ha_Tab,@object
 	.size	__dtan_ha_Tab,16
+      	.section        .note.GNU-stack,"",@progbits

@@ -575,3 +575,4 @@ __satanh_ha__imlsAtanhTab:
 	.long	2139095040
 	.type	__satanh_ha__imlsAtanhTab,@object
 	.size	__satanh_ha__imlsAtanhTab,12
+      	.section        .note.GNU-stack,"",@progbits

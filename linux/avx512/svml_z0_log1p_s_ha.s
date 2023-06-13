@@ -956,3 +956,4 @@ __slog1p_ha_CoutTab:
 	.long	0x3f800000
 	.type	.L_2il0floatpacket.93,@object
 	.size	.L_2il0floatpacket.93,4
+      	.section        .note.GNU-stack,"",@progbits

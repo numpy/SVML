@@ -3115,3 +3115,4 @@ __stan_ha__vmlsTanTab:
 	.long	2139095040
 	.type	__stan_ha__vmlsTanTab,@object
 	.size	__stan_ha__vmlsTanTab,8
+      	.section        .note.GNU-stack,"",@progbits

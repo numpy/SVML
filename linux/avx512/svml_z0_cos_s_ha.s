@@ -2856,3 +2856,4 @@ __scos_ha__vmlsCosCoutTab:
 	.long	2139095040
 	.type	__scos_ha__vmlsCosCoutTab,@object
 	.size	__scos_ha__vmlsCosCoutTab,8
+      	.section        .note.GNU-stack,"",@progbits
