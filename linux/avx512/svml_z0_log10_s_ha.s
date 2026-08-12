@@ -39,6 +39,7 @@ __svml_log10f16_ha:
 
 
 	.cfi_startproc
+	endbr64
 ..L2:
 
         pushq     %rbp
@@ -950,4 +951,20 @@ __slog10_ha_CoutTab:
 	.long	0x3f800000
 	.type	.L_2il0floatpacket.99,@object
 	.size	.L_2il0floatpacket.99,4
+	.section ".note.gnu.property", "a"
+	.p2align 3
+	.long 1f - 0f
+	.long 4f - 1f
+	.long 5
+0:
+	.asciz "GNU"
+1:
+	.p2align 3
+	.long 0xc0000002
+	.long 3f - 2f
+2:
+	.long 3
+3:
+	.p2align 3
+4:
       	.section        .note.GNU-stack,"",@progbits

@@ -29,6 +29,7 @@ __svml_cos8:
 
 
 	.cfi_startproc
+	endbr64
 ..L2:
 
         pushq     %rbp
@@ -17674,4 +17675,20 @@ __dcos_la_CoutTab:
 	.type	__dcos_la_CoutTab,@object
 	.size	__dcos_la_CoutTab,16
 
+	.section ".note.gnu.property", "a"
+	.p2align 3
+	.long 1f - 0f
+	.long 4f - 1f
+	.long 5
+0:
+	.asciz "GNU"
+1:
+	.p2align 3
+	.long 0xc0000002
+	.long 3f - 2f
+2:
+	.long 3
+3:
+	.p2align 3
+4:
       .section        .note.GNU-stack,"",@progbits

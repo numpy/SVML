@@ -37,6 +37,7 @@ __svml_atan8_ha:
 
 
 	.cfi_startproc
+	endbr64
 ..L2:
 
         vmovups   128+__svml_datan_ha_data_internal_avx512(%rip), %zmm8
@@ -1384,4 +1385,20 @@ __datan_ha_CoutTab:
 	.long	1101004800
 	.type	__datan_ha_CoutTab,@object
 	.size	__datan_ha_CoutTab,1936
+	.section ".note.gnu.property", "a"
+	.p2align 3
+	.long 1f - 0f
+	.long 4f - 1f
+	.long 5
+0:
+	.asciz "GNU"
+1:
+	.p2align 3
+	.long 0xc0000002
+	.long 3f - 2f
+2:
+	.long 3
+3:
+	.p2align 3
+4:
       	.section        .note.GNU-stack,"",@progbits
