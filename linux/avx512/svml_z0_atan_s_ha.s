@@ -37,6 +37,7 @@ __svml_atanf16_ha:
 
 
 	.cfi_startproc
+	endbr64
 ..L2:
 
         vmovups   128+__svml_satan_ha_data_internal_avx512(%rip), %zmm4
@@ -394,4 +395,20 @@ __svml_satan_ha_data_internal_avx512:
 	.long	3198855850
 	.type	__svml_satan_ha_data_internal_avx512,@object
 	.size	__svml_satan_ha_data_internal_avx512,1024
+	.section ".note.gnu.property", "a"
+	.p2align 3
+	.long 1f - 0f
+	.long 4f - 1f
+	.long 5
+0:
+	.asciz "GNU"
+1:
+	.p2align 3
+	.long 0xc0000002
+	.long 3f - 2f
+2:
+	.long 3
+3:
+	.p2align 3
+4:
       	.section        .note.GNU-stack,"",@progbits

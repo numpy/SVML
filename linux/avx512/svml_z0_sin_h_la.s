@@ -25,6 +25,7 @@
 __svml_sins32:
 
         .cfi_startproc
+	endbr64
         kxnord  %k7, %k7, %k7
         vmovdqu16 __svml_hsin_data_internal(%rip), %zmm25
         vmovdqu16 64+__svml_hsin_data_internal(%rip), %zmm24
@@ -250,4 +251,20 @@ __svml_hsin_data_internal:
 	.endr
         .type	__svml_hsin_data_internal,@object
         .size	__svml_hsin_data_internal,896
+	.section ".note.gnu.property", "a"
+	.p2align 3
+	.long 1f - 0f
+	.long 4f - 1f
+	.long 5
+0:
+	.asciz "GNU"
+1:
+	.p2align 3
+	.long 0xc0000002
+	.long 3f - 2f
+2:
+	.long 3
+3:
+	.p2align 3
+4:
 	 .section        .note.GNU-stack,"",@progbits
