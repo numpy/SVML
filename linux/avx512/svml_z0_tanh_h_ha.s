@@ -216,3 +216,5 @@ __svml_htanh_ha_data_internal:
 	.size	__svml_htanh_ha_data_internal, 512
 
 
+
+	.section	.note.GNU-stack,"",@progbits

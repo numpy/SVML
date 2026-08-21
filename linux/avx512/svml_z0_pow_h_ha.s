@@ -399,3 +399,5 @@ __svml_hpow_ha_data_internal:
 	.size	__svml_hpow_ha_data_internal, 704
 
 
+
+	.section	.note.GNU-stack,"",@progbits

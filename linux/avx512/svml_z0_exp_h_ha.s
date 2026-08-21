@@ -753,3 +753,5 @@ __svml_hexp_ha_data_internal:
 	.size	__svml_hexp_ha_data_internal, 1920
 
 
+
+	.section	.note.GNU-stack,"",@progbits

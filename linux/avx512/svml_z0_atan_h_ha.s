@@ -221,3 +221,5 @@ __svml_hatan_ha_data_internal:
 	.size	__svml_hatan_ha_data_internal, 640
 
 
+
+	.section	.note.GNU-stack,"",@progbits

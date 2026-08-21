@@ -186,3 +186,5 @@ __svml_hacos_ha_data_internal:
 	.size	__svml_hacos_ha_data_internal, 512
 
 
+
+	.section	.note.GNU-stack,"",@progbits

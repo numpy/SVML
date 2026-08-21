@@ -1555,3 +1555,5 @@ __svml_hsin_ha_data_internal:
 	.size	__svml_hsin_ha_data_internal, 5376
 
 
+
+	.section	.note.GNU-stack,"",@progbits

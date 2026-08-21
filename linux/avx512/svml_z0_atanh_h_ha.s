@@ -228,3 +228,5 @@ __svml_hatanh_ha_data_internal:
 	.size	__svml_hatanh_ha_data_internal, 576
 
 
+
+	.section	.note.GNU-stack,"",@progbits

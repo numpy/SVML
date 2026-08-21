@@ -393,3 +393,5 @@ __svml_hlog10_ha_data_internal:
 	.size	__svml_hlog10_ha_data_internal, 1216
 
 
+
+	.section	.note.GNU-stack,"",@progbits

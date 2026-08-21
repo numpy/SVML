@@ -455,3 +455,5 @@ __svml_hexp10_ha_data_internal_avx512:
 	.size	__svml_hexp10_ha_data_internal_avx512, 1280
 
 
+
+	.section	.note.GNU-stack,"",@progbits

@@ -294,3 +294,5 @@ __svml_hacosh_ha_data_internal:
 	.size	__svml_hacosh_ha_data_internal, 832
 
 
+
+	.section	.note.GNU-stack,"",@progbits

@@ -172,3 +172,5 @@ __svml_hexpm1_ha_data_internal:
 	.size	__svml_hexpm1_ha_data_internal, 448
 
 
+
+	.section	.note.GNU-stack,"",@progbits

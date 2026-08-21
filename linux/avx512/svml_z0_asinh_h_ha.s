@@ -332,3 +332,5 @@ __svml_hasinh_ha_data_internal:
 	.size	__svml_hasinh_ha_data_internal, 960
 
 
+
+	.section	.note.GNU-stack,"",@progbits
