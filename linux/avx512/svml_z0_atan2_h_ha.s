@@ -9,6 +9,7 @@
 	.type	__svml_atan2s32_ha,@function
 __svml_atan2s32_ha:                  # 
 	.cfi_startproc
+	endbr64
 # %bb.0:
 	vmovups	__svml_hatan2_ha_data_internal(%rip), %zmm2 # AlignMOV convert to UnAlignMOV 
 	vandps	%zmm1, %zmm2, %zmm4
@@ -139,6 +140,7 @@ __svml_atan2s32_ha:                  #
 	.type	__svml_z0__svml_hatan2_ha_cout_rare_internal_wrapper,@function
 __svml_z0__svml_hatan2_ha_cout_rare_internal_wrapper: # 
 	.cfi_startproc
+	endbr64
 # %bb.0:
 	subq	$184, %rsp
 	vmovups	%xmm15, 160(%rsp)               # 16-byte Spill
@@ -378,4 +380,14 @@ __svml_hatan2_ha_data_internal:
 
 
 
+	.section	.note.gnu.property,"a",@note
+	.p2align	3
+	.long	4
+	.long	16
+	.long	5
+	.byte	0x47, 0x4e, 0x55, 0
+	.long	0xc0000002
+	.long	4
+	.long	0x00000003
+	.long	0
 	.section	.note.GNU-stack,"",@progbits

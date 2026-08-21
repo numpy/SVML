@@ -9,6 +9,7 @@
 	.type	__svml_tans32_ha,@function
 __svml_tans32_ha:                    # 
 	.cfi_startproc
+	endbr64
 # %bb.0:
 	vpandq	__svml_htan_ha_data_internal(%rip), %zmm0, %zmm1
 	vcvtph2psx	%ymm1, %zmm2
@@ -227,4 +228,14 @@ __svml_htan_ha_data_internal:
 
 
 
+	.section	.note.gnu.property,"a",@note
+	.p2align	3
+	.long	4
+	.long	16
+	.long	5
+	.byte	0x47, 0x4e, 0x55, 0
+	.long	0xc0000002
+	.long	4
+	.long	0x00000003
+	.long	0
 	.section	.note.GNU-stack,"",@progbits
